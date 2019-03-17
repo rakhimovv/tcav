@@ -78,17 +78,17 @@ def plot_results(results, random_counterpart=None, random_concepts=None, num_ran
                 if bottleneck not in plot_data:
                     plot_data[bottleneck] = {'bn_vals': [], 'bn_stds': [], 'significant': []}
 
-#                 if p_val > min_p_val:
-#                     # statistically insignificant
-#                     plot_data[bottleneck]['bn_vals'].append(0.01)
-#                     plot_data[bottleneck]['bn_stds'].append(0)
-#                     plot_data[bottleneck]['significant'].append(False)
+                if p_val > min_p_val:
+                    # statistically insignificant
+                    plot_data[bottleneck]['bn_vals'].append(0.01)
+                    plot_data[bottleneck]['bn_stds'].append(0)
+                    plot_data[bottleneck]['significant'].append(False)
 
-#                 else:
-                plot_data[bottleneck]['bn_vals'].append(np.mean(i_ups))
-                plot_data[bottleneck]['bn_stds'].append(np.std(i_ups))
-                plot_data[bottleneck]['significant'].append(p_val <= min_p_val)
-#                     plot_data[bottleneck]['significant'].append(True)
+                else:
+                    plot_data[bottleneck]['bn_vals'].append(np.mean(i_ups))
+                    plot_data[bottleneck]['bn_stds'].append(np.std(i_ups))
+                    #                 plot_data[bottleneck]['significant'].append(p_val <= min_p_val)
+                    plot_data[bottleneck]['significant'].append(True)
 
                 print(3 * " ", "Bottleneck =", ("%s. TCAV Score = %.2f (+- %.2f), "
                                                 "random was %.2f (+- %.2f). p-val = %.3f (%s)") % (
@@ -96,7 +96,7 @@ def plot_results(results, random_counterpart=None, random_concepts=None, num_ran
                           np.mean(random_i_ups[bottleneck]),
                           np.std(random_i_ups[bottleneck]), p_val,
                           "not significant" if p_val > min_p_val else "significant"))
-    
+
     # subtract number of random experiments
     if random_counterpart:
         num_concepts = len(result_summary) - 1
@@ -124,14 +124,14 @@ def plot_results(results, random_counterpart=None, random_concepts=None, num_ran
         # show them as different from others
         for j, significant in enumerate(vals['significant']):
             if not significant:
-                ax.text(index[j] + i * bar_width - 0.1, vals['bn_vals'][j], "*",
+                ax.text(index[j] + i * bar_width - 0.1, 0.01, "*",
                         fontdict={'weight': 'bold', 'size': 16,
-                                  'color': 'red'})#bar.patches[0].get_facecolor()})
+                                  'color': bar.patches[0].get_facecolor()})
 
     # set properties
     ax.set_title('TCAV Scores for each concept and bottleneck')
     ax.set_ylabel('TCAV Score')
-    ax.set_ylim(0.,1.1)
+    ax.set_ylim(0., 1.1)
     ax.set_xticks(index + num_bottlenecks * bar_width / 2)
     ax.set_xticklabels([concept for concept in result_summary if not is_random_concept(concept)])
     handles, labels = ax.get_legend_handles_labels()
