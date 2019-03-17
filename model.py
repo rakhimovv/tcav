@@ -8,7 +8,7 @@ import tensorflow as tf
 import gc
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -57,13 +57,15 @@ class ModelWrapper(object):
             global bn_activation
             bn_activation = out
 
-        self.model._modules[bottleneck_name].register_forward_hook(save_activation_hook)
+        handle = self.model._modules[bottleneck_name].register_forward_hook(save_activation_hook)
 
         self.model.to(device)
         inputs = torch.FloatTensor(examples).permute(0, 3, 1, 2).to(device)
         self.model.eval()
         self.model(inputs)
         acts = bn_activation.detach().cpu().numpy()
+        handle.remove()
+
         return acts
 
 
