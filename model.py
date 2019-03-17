@@ -8,7 +8,7 @@ import tensorflow as tf
 import gc
 
 import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -22,21 +22,21 @@ class ModelWrapper(object):
         self.cutted_model = None
 
     @abstractmethod
-    def init_cutted_model(self, bottleneck):
+    def get_cutted_model(self, bottleneck):
         pass
 
     def get_gradient(self, acts, y, bottleneck_name):
         inputs = torch.autograd.Variable(torch.tensor(acts).to(device), requires_grad=True)
         targets = (y[0] * torch.ones(inputs.size(0))).long().to(device)
 
-        self.init_cutted_model(bottleneck_name)
-        self.cutted_model.to(device)
-        self.cutted_model.eval()
-        outputs = self.cutted_model(inputs)
+        cutted_model = self.get_cutted_model(bottleneck_name).to(device)
+        cutted_model.eval()
+        outputs = cutted_model(inputs)
+
         loss = torch.nn.CrossEntropyLoss()(outputs, targets)
         loss.backward()
         grads = inputs.grad.detach().cpu().numpy()
-        self.cutted_model = None
+        cutted_model = None
         gc.collect()
 
         return grads
@@ -49,7 +49,7 @@ class ModelWrapper(object):
         pass
 
     def run_examples(self, examples, bottleneck_name):
-        
+
         global bn_activation
         bn_activation = None
 
@@ -145,5 +145,5 @@ class InceptionV3Wrapper(PublicImageModelWrapper):
     def forward(self, x):
         return self.model.forward(x)
 
-    def init_cutted_model(self, bottleneck):
-        self.cutted_model = InceptionV3_cutted(self.model, bottleneck)
+    def get_cutted_model(self, bottleneck):
+        return InceptionV3_cutted(self.model, bottleneck)
