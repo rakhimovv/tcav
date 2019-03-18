@@ -8,7 +8,7 @@ import tensorflow as tf
 import gc
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -19,7 +19,6 @@ class ModelWrapper(object):
     def __init__(self):
         self.model = None
         self.model_name = None
-        self.cutted_model = None
 
     @abstractmethod
     def get_cutted_model(self, bottleneck):
@@ -33,9 +32,11 @@ class ModelWrapper(object):
         cutted_model.eval()
         outputs = cutted_model(inputs)
 
-        loss = torch.nn.CrossEntropyLoss()(outputs, targets)
-        loss.backward()
-        grads = inputs.grad.detach().cpu().numpy()
+        # y=[i]
+        grads = -torch.autograd.grad(outputs[:, y[0]], inputs)[0]
+        
+        grads = grads.detach().cpu().numpy()
+
         cutted_model = None
         gc.collect()
 
